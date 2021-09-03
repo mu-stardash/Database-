@@ -1,0 +1,43 @@
+-- Создайте триггер, который при добавлении нового приема изменяет значение поля 
+«количество принятых пациентов»
+
+CREATE TRIGGER plusRecepCount ON tblReception
+AFTER INSERT 
+AS
+DECLARE @docId int, @patId int, @date date, @time char(5), @room char (5), @res char(255)
+DECLARE intCursor2 cursor for Select intDoctorId, intPatientId, datReceptionDate, txtReceptionTime, txtReceptionRoom, txtReceptionResult
+									FROM inserted
+BEGIN
+OPEN intCursor2
+fetch from intCursor2 into  @docId, @patId, @date, @time, @room, @res
+while @@FETCH_STATUS = 0 BEGIN
+	UPDATE tblDoctor
+	SET intReceptionCount = intReceptionCount + 1
+	WHERE tblDoctor.intDoctorId = @docId
+	fetch from intCursor2 into @docId, @patId, @date, @time, @room, @res
+	end;
+close intCursor2;
+deallocate intCursor2;
+end
+
+-- Создайте триггер, который при удалении 
+приема изменяет значение поля «количество принятых пациентов»
+
+CREATE TRIGGER minRecepCount ON tblReception
+AFTER DELETE 
+AS
+DECLARE @docId int, @patId int, @date date, @time char(5), @room char (5), @res char(255)
+DECLARE intCursor2 cursor for Select intDoctorId, intPatientId, datReceptionDate, txtReceptionTime, txtReceptionRoom, txtReceptionResult
+									FROM deleted
+BEGIN
+OPEN intCursor2
+fetch from intCursor2 into  @docId, @patId, @date, @time, @room, @res
+while @@FETCH_STATUS = 0 BEGIN
+	UPDATE tblDoctor
+	SET intReceptionCount = intReceptionCount - 1
+	WHERE tblDoctor.intDoctorId = @docId
+	fetch from intCursor2 into @docId, @patId, @date, @time, @room, @res
+	end;
+close intCursor2;
+deallllocate intCursor2;
+end

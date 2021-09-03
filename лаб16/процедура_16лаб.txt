@@ -1,0 +1,35 @@
+-- Создание процедуры
+create procedure pr11
+as
+
+begin
+SELECT tblDoctor.txtDoctorName, tblDoctor.txtSpecialist, tblDoctor.datDoctorWork,
+tblDrug.txtDrugName, tblDrug.fltDrugPrice,
+tblRecipe.datRecipeDate, tblRecipe.txtRecipeComment,
+tblPatient.txtPatientSurname, tblPatient.txtPatientName, tblPatient.txtPatientSecondName,
+tblPatient.datBirthday, tblPatient.txtAddress
+FROM tblDoctor, tblDrug, tblPatient, tblRecipe
+WHERE tblRecipe.intDoctorId = tblDoctor.intDoctorId AND
+tblRecipe.intPatientId = tblPatient.intPatientId AND
+tblRecipe.intDrugId = tblDrug.intDrugId 
+END	
+
+
+-- При повторном вызове процедуры
+alter Procedure pr11 as -- изменяет существующую сохраненную процедуру
+BEGIN
+
+-- SELECT INTO копирует данные из одной табл в новую
+SELECt * into #table1 from (SELECT tblDoctor.txtDoctorName, tblDoctor.txtSpecialist, tblDoctor.datDoctorWork,
+tblDrug.txtDrugName, tblDrug.fltDrugPrice,
+tblRecipe.datRecipeDate, tblRecipe.txtRecipeComment,
+tblPatient.txtPatientSurname, tblPatient.txtPatientName, tblPatient.txtPatientSecondName,
+tblPatient.datBirthday, tblPatient.txtAddress
+FROM tblDoctor, tblDrug, tblPatient, tblRecipe
+WHERE tblRecipe.intDoctorId = tblDoctor.intDoctorId AND
+tblRecipe.intPatientId = tblPatient.intPatientId AND
+tblRecipe.intDrugId = tblDrug.intDrugId) as tab
+
+SELECT * FROM #table1;
+
+END

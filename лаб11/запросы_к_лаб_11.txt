@@ -1,0 +1,54 @@
+# у меня пропал файл с кодом, остались ток запросы(
+
+
+# Получение имен всех докторов
+cursor.execute("""Select tblDoctor.txtDoctorName
+               from tblDoctor""")
+
+
+# Получение специальности и даты приёма на работу i-ого доктора
+cursor.execute("""SELECT txtSpecialist, datDoctorWork
+                   From tblDoctor
+                   Where txtDoctorName = ?""", i)
+
+
+# Получение "словаря" всех лекарств и их кол-ва рецептов i-ого доктора (для выполнения 
+задания "По каждому лекарству выводится количество рецептов")
+cursor.execute("""SELECT distinct tblDrug.txtDrugName, count(*)
+                    from tblDrug, tblRecipe, tblDoctor
+                    where
+                    tblDrug.intDrugId = tblRecipe.intDrugId AND
+                    tblRecipe.intDrugId = tblDrug.intDrugId AND
+                    tblDoctor.txtDoctorName = ? AND
+                    tblDoctor.intDoctorId = tblRecipe.intDoctorId
+                    group by tblDrug.txtDrugName""", i)
+
+
+# Получение названия лекарства, его описания и цены (для конкретного i-ого доктора)
+cursor2.execute("""SELECT distinct tblDrug.txtDrugName, tblDrug.txtDrugDescription, tblDrug.fltDrugPrice
+                      from tblDrug, tblDoctor, tblRecipe
+                      WHERE tblRecipe.intDrugId = tblDrug.intDrugId AND
+                      tblRecipe.intDoctorId = tblDoctor.intDoctorId AND
+                      tblDoctor.txtDoctorName = ?""", i)
+
+
+# Список рецептов, содержащий дату выписки рецепта, фамилию, имя и отчество пациента, 
+дату его рождения, адрес проживания и дополнительную информацию по рецепту 
+(для конкретного i-ого доктора)
+cursor3.execute("""SELECT tblRecipe.datRecipeDate, tblPatient.txtPatientSurname, tblPatient.txtPatientName, tblPatient.txtPatientSecondName,
+                    tblPatient.datBirthday, tblPatient.txtAddress, tblRecipe.txtRecipeComment
+                    from tblPatient, tblRecipe, tblDrug, tblDoctor
+                    where tblRecipe.intPatientId = tblPatient.intPatientId AND
+                    tblRecipe.intDoctorId = tblDoctor.intDoctorId AND
+                    tblRecipe.intDrugId = tblDrug.intDrugId AND
+                    tblDoctor.txtDoctorName = ?
+                    order by tblRecipe.datRecipeDate asc""", i)
+
+
+# Для выполнения задания "Для каждого врача выводится суммарная стоимость 
+выписанных рецептов"
+cursor.execute("""SELECT sum(tblDrug.fltDrugPrice)
+                   from tblDrug, tblDoctor, tblRecipe
+                   where tblDoctor.txtDoctorName = ? AND
+                   tblDoctor.intDoctorId = tblRecipe.intDoctorId AND
+                   tblDrug.intDrugId = tblRecipe.intDrugId """, i)

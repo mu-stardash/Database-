@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 26 12:39:57 2021
+
+@author: DashaEfimova
+"""
+import pyodbc
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+
+# ФУНКЦИЯ создана для 13 лабы, поэтому чтобы запускать этот файл отдельно, то либо удалите эту функцию, либо в ЭТОМ файле вызывайте otchet10()
+# ТО же самое касается и других отчетов
+
+
+def otchet10():
+    
+    # Установление соединения с базой данной
+    conn = pyodbc.connect(driver = '{SQL Server}',server = '192.168.112.103' , database = 'db22205', user = 'User052', password = 'User052>#26')
+    cursor = conn.cursor()
+    
+    report = canvas.Canvas("report10.pdf")
+    
+    pdfmetrics.registerFont(TTFont('Helvetica-Bold','Helvetica-Bold.ttf'))
+    report.setFont('Helvetica-Bold', 16)
+    
+    report.drawString(200, 810, "Работа поликлинники")
+    report.setStrokeColorRGB(0.2,0.5,0.3)
+    
+    
+    report.line(0, 805, 1000, 805)
+    report.line(0, 805, 1000, 806) # линия толще
+    
+    cursor.execute("""Select DISTINCT tblReception.datReceptionDate
+                   from tblReception""")
+    list_data = []
+    row = cursor.fetchone()   # получение данных записи
+    
+    while row:
+        list_data.append(row[0])
+        row = cursor.fetchone()   # получение данных одной записи
+    
+    x = 20
+    y = 790
+    
+    pdfmetrics.registerFont(TTFont('FreeSans','FreeSans.ttf'))
+    report.setFont('FreeSans', 12)
+    
+    for i in list_data:
+        count_str = 0
+        if y <= 40:
+            x = 20
+            y = 790
+            report.showPage() # новая страница
+            pdfmetrics.registerFont(TTFont('Helvetica-Bold','Helvetica-Bold.ttf'))
+            report.setFont('Helvetica-Bold', 16)
+            report.drawString(200, 810, "Работа поликлинники")
+            report.setStrokeColorRGB(0.2,0.5,0.3)
+            report.line(0, 805, 1000, 805)
+            report.line(0, 805, 1000, 806) # линия толще
+        
+        pdfmetrics.registerFont(TTFont('Helvetica-Bold','Helvetica-Bold.ttf'))
+        report.setFont('Helvetica-Bold', 12)
+        report.setFillColorRGB(1,0,0)
+        report.drawString(250, y, i)
+        y = y - 20
+        report.setFillColorRGB(0,0,0)
+        report.setFont('FreeSans', 12)
+        report.drawString(x, y, "Время приёма"+"   " + "№ кабинета" +"        "+ "ФИО врача" +"          "+ "Специальность" +"         "+ "ФИО пациента")
+        cursor.execute("""SELECT tblReception.txtReceptionTime, tblReception.txtReceptionRoom, tblDoctor.txtDoctorName, tblDoctor.txtSpecialist, tblPatient.txtPatientSurname, tblPatient.txtPatientName, tblPatient.txtPatientSecondName
+                        FROM tblReception, tblDoctor, tblPatient
+                        WHERE tblReception.datReceptionDate = ? AND
+                        tblReception.intDoctorId = tblDoctor.intDoctorId AND
+                        tblReception.intPatientId = tblPatient.intPatientId
+                        ORDER BY tblReception.datReceptionDate, tblReception.txtReceptionTime asc
+                        """, i)
+        row = cursor.fetchone()
+        y = y - 20
+        
+        while row:
+            count_str += 1
+            report.drawString(x, y, row[0] +"                    "+ row[1] +"              "+ row[2] +"             "+row[3] +"           "+ row[4] +" "+ row[5]+" "+ row[6])
+            row = cursor.fetchone()
+            y = y - 15
+            
+        y = y -5
+        report.drawString(x, y, "Кол-во приёмов: ")
+        report.drawString(x + 100, y, str(count_str))
+        y = y - 5
+        report.setStrokeColorRGB(0.2,0.5,0.3)
+        report.line(0, y, 1000, y - 3)
+        y = y - 20
+    
+    report.save()
+    print("Отчет о работе поликлинники создан!")

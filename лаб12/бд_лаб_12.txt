@@ -1,0 +1,94 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May 19 13:37:35 2021
+
+@author: DashaEfimova
+"""
+
+import pyodbc
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+def otchet12(fio_patient):
+    # Установление соединения с базой данной
+    conn = pyodbc.connect(driver = '{SQL Server}',server = '192.168.112.103' , database = 'db22205', user = 'User052', password = 'User052>#26')
+    cursor = conn.cursor()
+    
+    report = canvas.Canvas("report12.pdf")
+    
+    pdfmetrics.registerFont(TTFont('Helvetica-Bold','Helvetica-Bold.ttf'))
+    report.setFont('Helvetica-Bold', 16)
+    
+    report.drawString(200, 810, "Карточка пациента")
+    report.setStrokeColorRGB(0.2,0.5,0.3)
+    
+    report.line(0, 805, 1000, 805)
+    report.line(0, 805, 1000, 806) # линия толще
+    
+    # выбранный пациент
+    #fio_patient = 'Новикова Вероника Николаевна' 
+    fio_patient = fio_patient.get().split(' ')
+    print(fio_patient[0] + ' '+ fio_patient[1] + ' ' + fio_patient[2])
+    surname = fio_patient[0]
+    name = fio_patient[1]
+    secondname = fio_patient[2]
+    fio_patient = ' '.join(fio_patient)
+    
+    
+    cursor.execute("""Select datBirthday, txtAddress
+                   from tblPatient
+                   Where txtPatientSurname = ? AND
+                   txtPatientName = ? AND
+                   txtPatientSecondName = ?""", surname, name, secondname)
+    
+    row = cursor.fetchone()   # получение данных записи
+    
+    x = 20
+    y = 780
+    
+    report.drawString(x + 150, y, fio_patient)
+    y-= 20
+    
+    
+    pdfmetrics.registerFont(TTFont('FreeSans','FreeSans.ttf'))
+    report.setFont('FreeSans', 12)
+    
+    while row:
+            report.drawString(x, y, "Дата рождения: " + row[0])
+            y = y - 15
+            report.drawString(x, y, "Адрес проживания: " + row[1])
+            
+            pdfmetrics.registerFont(TTFont('Helvetica-Bold','Helvetica-Bold.ttf'))
+            report.setFont('Helvetica-Bold', 12)
+            report.drawString(x, y - 15, "Список приемов: ")
+            row = cursor.fetchone()
+            y -= 30
+    
+    pdfmetrics.registerFont(TTFont('FreeSans','FreeSans.ttf'))
+    report.setFont('FreeSans', 12)
+    report.drawString(x, y, "Дата приёма"+"   " + "Время приёма" +"        "+ "ФИО врача" +"          "+ "Специальность" +"         "+ "Заключение")
+    
+    cursor.execute("""Select tblReception.datReceptionDate, tblReception.txtReceptionTime,
+                   tblDoctor.txtDoctorName, tblDoctor.txtSpecialist , tblReception.txtReceptionResult
+                   from tblDoctor, tblReception, tblPatient
+                   Where txtPatientSurname = ? AND
+                   txtPatientName = ? AND
+                   txtPatientSecondName = ? AND
+                   tblDoctor.intDoctorId = tblReception.intDoctorId AND
+                   tblPatient.intPatientId = tblReception.intPatientId
+                   order by tblReception.datReceptionDate desc""", surname, name, secondname)
+    
+    row = cursor.fetchone()   # получение данных записи
+    y-=15
+    
+    while row:
+            report.drawString(x, y, row[0] +"            "+ row[1] +"              "+ row[2] +"            "+row[3] +"              "+ row[4])
+            row = cursor.fetchone()
+            y = y - 15
+    report.setStrokeColorRGB(0.2,0.5,0.3)
+    report.line(0, y, 1000, y - 3)
+    y = y - 20
+    
+    report.save()
+    print("Отчет по карточке пациента создан!")

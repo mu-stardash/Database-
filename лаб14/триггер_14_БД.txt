@@ -1,0 +1,22 @@
+CREATE TRIGGER addReception ON tblReception
+INSTEAD OF INSERT
+AS
+DECLARE @docId int, @patId int, @date date, @time char(5), @room char (5), @res char(255), @countDate int
+DECLARE intCursor cursor for SELECT intDoctorId, intPatientId, datReceptionDate, txtReceptionTime, txtReceptionRoom, txtReceptionResult
+FROM inserted
+BEGIN
+OPEN intCursor
+fetch from intCursor into @docId, @patId, @date, @time, @room, @res
+while @@FETCH_STATUS = 0 begin
+	set @countDate = (SELECT count(*)
+				from tblReception
+				Where tblReception.intPatientId = @patId AND
+				tblReception.datReceptionDate = @date)
+	if (@countDate < 1)
+		insert into tblReception(intDoctorId, intPatientId, datReceptionDate, txtReceptionTime, txtReceptionRoom, txtReceptionResult)
+		values (@docId, @patId, @date, @time, @room, @res)
+		fetch from intCursor into @docId, @patId, @date, @time, @room, @res
+	end;
+close intCursor;
+deallocate intCursor;
+end

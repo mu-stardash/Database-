@@ -1,0 +1,14 @@
+USE [db22205]
+
+SELECT tblReception.datReceptionDate AS "Дата приема",
+	tblReception.txtReceptionTime AS "Время приема",
+	tblReception.txtReceptionRoom AS "Номер кабинета",
+	tblDoctor.txtDoctorName AS "ФИО доктора",
+	tblPatient.txtPatientSurname AS "Фамилия пациента"
+FROM tblReception, tblDoctor, tblPatient
+	WHERE (tblReception.txtReceptionRoom = '45' OR tblReception.txtReceptionRoom  = '56') AND
+	((tblReception.datReceptionDate >= '2014-01-01' AND tblReception.datReceptionDate <= '2014-02-01') OR 
+	(tblReception.datReceptionDate >= '2014-05-01' AND tblReception.datReceptionDate <= '2014-06-01')) AND
+	(tblReception.intDoctorId = tblDoctor.intDoctorId) AND
+	(tblReception.intPatientId = tblPatient.intPatientId)
+	ORDER BY tblReception.datReceptionDate asc, tblReception.txtReceptionTime asc;

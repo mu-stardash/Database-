@@ -1,0 +1,195 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Apr  1 12:22:06 2021
+
+@author: DashaEfimova
+"""
+
+import pyodbc
+import tkinter as tk
+import tkinter.ttk as ttk
+
+# Установление соединения с базой данной
+conn = pyodbc.connect(driver = '{SQL Server}',server = '192.168.112.103' , database = 'db22205', user = 'User052', password = 'User052>#26')
+
+cursor = conn.cursor()
+root = tk.Tk()   
+table1 = ttk.Treeview(root, show="headings", selectmode="browse")
+table2 = ttk.Treeview()
+
+
+def new_form_7():
+    root7 = tk.Tk()
+    root7.title("Новый доктор")
+    root7.geometry("600x350+700+100")
+
+    text2 = tk.Label(root7,text = "     ФИО доктора: ", justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    text2.grid(row=0, column=0, ipadx=10, ipady=6, padx=10, pady=10)
+
+    entry = tk.Entry(root7, width = 25, justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    entry.grid(row=0, column=1, ipadx=5, ipady=2, padx=10, pady=10)
+
+    text3 = tk.Label(root7, text = "  Специальность: ", justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    text3.grid(row=1, column=0, ipadx=10, ipady=6, padx=10, pady=10)
+
+    entry2 = tk.Entry(root7, width = 25, justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    entry2.grid(row=1, column=1, ipadx=5, ipady=2, padx=10, pady=10)
+
+    text4 = tk.Label(root7, text = "Дата приёма на\n     работу: ", justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    text4.grid(row=2, column=0, ipadx=10, ipady=6, padx=10, pady=10)
+
+    entry3 = tk.Entry(root7, width = 25, justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    entry3.grid(row=2, column=1, ipadx=5, ipady=2, padx=10, pady=10)
+    
+    text5 = tk.Label(root7, text = "Кол-во принятых\n    пациентов: ", justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    text5.grid(row=3, column=0, ipadx=10, ipady=6, padx=10, pady=10)
+    
+    entry4 = tk.Entry(root7, width = 25, justify = tk.RIGHT, font=("Comic Sans MS", 14))
+    entry4.grid(row=3, column=1, ipadx=5, ipady=2, padx=10, pady=10)
+
+    button2 = tk.Button(root7, text="Закрыть", width = 8, font=("Comic Sans MS", 8), border="4", command=root7.destroy)
+    button2.place(relx = 0.70, rely = 0.9, anchor = tk.CENTER)
+
+    button3 = tk.Button(root7, text="Ок", width = 8, font=("Comic Sans MS", 8), border="4", command=lambda: insert_data(entry, entry2, entry3, entry4))
+    button3.place(relx = 0.83, rely = 0.9, anchor = tk.CENTER)
+
+
+def insert_data(entry, entry2, entry3, entry4):
+    print(entry.get(), entry2.get(), entry3.get(), entry4.get())
+    cursor.execute("Insert into tblDoctor(txtDoctorName, txtSpecialist, datDoctorWork, intReceptionCount) values(?,?,?,?)", entry.get(),entry2.get(),entry3.get(),entry4.get())
+    conn.commit()           # сохранение введенных данных
+    table1.insert('', tk.END, values=(entry.get(), entry2.get(), entry3.get()))
+    entry.delete(0, tk.END) # очищение поля ввода
+    entry2.delete(0, tk.END)
+    entry3.delete(0, tk.END)
+    entry4.delete(0, tk.END)
+    
+
+def new_form_8(event):
+    root8 = tk.Tk()
+    root8.title("Приём")
+    root8.geometry("900x300+100+200")
+
+    if not table1.selection():
+        return
+    
+    # Получаем id первого выделенного элемента
+    selected_item = table1.selection()[0]
+
+    # Получаем значения в выделенной строке
+    values = table1.item(selected_item, option="values")
+    print(values)
+    
+    text8_1 = tk.Label(root8, text = "Информация о приёмах:\n", justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 12))
+    text8_1.place(relx = 0.02, rely = 0.001)
+    
+    
+    text8_2 = tk.Label(root8, text = "Врач:", justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 12))
+    text8_2.place(relx = 0.02, rely = 0.1)
+    text8_2_1 = tk.Label(root8, text = values[0], justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 12))
+    text8_2_1.place(relx = 0.07, rely = 0.1)
+    
+    text8_3 = tk.Label(root8, text = "Специальность:", justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 12))
+    text8_3.place(relx = 0.02, rely = 0.2)
+    text8_3_1 = tk.Label(root8, text = values[1], justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 12))
+    text8_3_1.place(relx = 0.16, rely = 0.2)
+    
+    text8_4 = tk.Label(root8, text = "Дата приёма на работу:", justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 12))
+    text8_4.place(relx = 0.02, rely = 0.3)
+    text8_4_1 = tk.Label(root8, text = values[2], justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 12))
+    text8_4_1.place(relx = 0.23, rely = 0.3)
+
+    # Вызов подчиненной формы
+    button8_1 = tk.Button(root8, text="Доп. информация", width = 15, font=("Comic Sans MS", 12), border="4", command=lambda: get_subform(root8, values[0]))
+    button8_1.place(relx = 0.83, rely = 0.15, anchor = tk.CENTER)
+    
+    button8_2 = tk.Button(root8, text="Новый приём", width = 15, font=("Comic Sans MS", 12), border="4", command = lambda: new_form_9(values[0], values[1]))
+    button8_2.place(relx = 0.83, rely = 0.30, anchor = tk.CENTER)
+
+def get_subform(root8, doctor_name):
+    root8.geometry("900x450+100+200")
+    cursor.execute("""Select tblReception.datReceptionDate, tblReception.txtReceptionTime, 
+                   tblReception.txtReceptionRoom, tblPatient.txtPatientName, tblPatient.txtPatientSurname, tblReception.txtReceptionResult 
+                   from tblReception, tblPatient, tblDoctor
+                   where (tblReception.intPatientId = tblPatient.intPatientId) and
+                   (tblReception.intDoctorId = tblDoctor.intDoctorId) and
+                   tblDoctor.txtDoctorName = ?""", doctor_name)
+    row = cursor.fetchone()   # получение данных записи
+
+    table2 = ttk.Treeview(root8, show="headings", selectmode="browse")
+    headings=('Дата приёма', 'Время приёма', '№ кабинета', 'ФИ пациента', 'Заключение')
+    
+    table2["columns"] = headings
+    table2["displaycolumns"] = headings
+    
+    for head in headings:
+        table2.heading(head, text=head, anchor=tk.CENTER)
+        table2.column(head, width = 90, anchor=tk.CENTER)
+
+    # scrolltable = tk.Scrollbar(root8, command=table2.yview)
+    scrolltable = tk.Scrollbar(root8, orient = "vertical", command = table2.yview)
+    table2.configure(yscrollcommand=scrolltable.set)
+    scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
+    # table2.pack(side=tk.BOTTOM, expand=tk.YES, fill=tk.X, padx = 30, pady = 100)
+    table2.place(rely = 0.4, relx = 0.05, width = 800)
+    
+    while row: 
+        table2.insert('', 'end', values=(row[0], row[1], row[2], row[4]+" "+row[3], row[5]))
+        row = cursor.fetchone()   # получение данных одной записи
+
+
+
+def main():
+    root.title("Доктора")
+    root.geometry("700x400")
+    lbox = tk.Label(height = 5, pady = 5)
+    text1 = tk.Label(text = "Информация о докторах:", justify = tk.RIGHT, padx = 2, pady = 5, font=("Comic Sans MS", 16))
+    
+    lbox.pack(side=tk.TOP)
+    text1.place(relx = 0.03, rely = 0.1)
+    
+    fr = tk.Frame()
+    fr2 = tk.Frame()
+    fr.pack(side=tk.LEFT, padx=10)
+    fr2.pack(side=tk.RIGHT, padx=10)
+    
+    textBotton = tk.Label(pady = 20).place(relx = 0.85, rely = 0.1)
+    tk.Button(textBotton, text="Добавить доктора", font=("Comic Sans MS", 12), border="4", command = new_form_7).place(relx = 0.73, rely = 0.1)    
+    
+    # Заполнение списка деталей из базы данных
+    # выполнение команды SQL
+    cursor.execute("Select txtDoctorName, txtSpecialist, datDoctorWork from tblDoctor")
+    row = cursor.fetchone()   # получение данных записи
+
+    headings=('ФИО доктора', 'Специальность', 'Дата приема на работу')
+    
+    table1["columns"] = headings
+    table1["displaycolumns"] = headings
+    
+    for head in headings:
+        table1.heading(head, text=head, anchor=tk.CENTER)
+        table1.column(head, anchor=tk.CENTER)
+
+    scrolltable = tk.Scrollbar(command=table1.yview)
+    table1.configure(yscrollcommand=scrolltable.set)
+    scrolltable.pack(side=tk.RIGHT, fill=tk.Y)
+    table1.pack(expand=tk.YES, fill=tk.X)
+    
+    while row: 
+        table1.insert('', 'end', values=(row[0], row[1], row[2]))
+        row = cursor.fetchone()   # получение данных одной записи
+
+
+    # БД_8
+    table1.bind('<Double-Button-1>', new_form_8)
+
+
+    # Передача управления пользователю
+    root.mainloop()
+    
+    # Закрытие курсора и соединения с базой данной
+    cursor.close()
+    conn.close()
+
+if __name__=="__main__":
+    main()

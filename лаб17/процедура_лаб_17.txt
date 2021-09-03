@@ -1,0 +1,38 @@
+-- Создание процедуры со входными параметрами
+
+create procedure pr12 @surn char(30), @name char(25), @secondName char(30)
+as
+
+begin
+SELECT tblPatient.txtPatientSurname, tblPatient.txtPatientName, tblPatient.txtPatientSecondName, tblPatient.datBirthday, tblPatient.txtAddress,
+tblReception.datReceptionDate, tblReception.txtReceptionTime,
+tblDoctor.txtDoctorName, tblDoctor.txtSpecialist, tblReception.txtReceptionResult
+FROM tblDoctor, tblPatient,  tblReception
+WHERE tblDoctor.intDoctorId = tblReception.intDoctorId AND
+tblPatient.intPatientId = tblReception.intPatientId AND
+txtPatientSurname = @surn AND
+txtPatientName = @name AND
+txtPatientSecondName = @secondName
+END	
+
+
+-- При повторном вызове процедуры изменяет существующую сохраненную процедуру
+
+alter Procedure pr12 @surn char(30), @name char(25), @secondName char(30)
+as -- изменяет существующую сохраненную процедуру
+BEGIN
+
+-- SELECT INTO копирует данные из одной табл в новую
+SELECt * into #table2 from (SELECT tblPatient.txtPatientSurname, tblPatient.txtPatientName, tblPatient.txtPatientSecondName, tblPatient.datBirthday, tblPatient.txtAddress,
+tblReception.datReceptionDate, tblReception.txtReceptionTime,
+tblDoctor.txtDoctorName, tblDoctor.txtSpecialist, tblReception.txtReceptionResult
+FROM tblDoctor, tblPatient,  tblReception
+WHERE tblDoctor.intDoctorId = tblReception.intDoctorId AND
+tblPatient.intPatientId = tblReception.intPatientId AND
+txtPatientSurname = @surn AND
+txtPatientName = @name AND
+txtPatientSecondName = @secondName) as tab2
+
+SELECT * FROM #table2;
+
+END
